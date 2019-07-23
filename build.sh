@@ -10,10 +10,14 @@ git config --global user.name "$GITHUB_USER"
 TELEGRAM_TOKEN=$(cat /tmp/tg_token)
 TELEGRAM_CHAT=$(cat /tmp/tg_chat)
 GITHUB_TOKEN=$(cat /tmp/gh_token)
+DEVICE=$(cat /tmp/device)
+OEM=$(cat /tmp/oem)
 
 export TELEGRAM_TOKEN
 export TELEGRAM_CHAT
 export GITHUB_TOKEN
+export DEVICE
+export OEM
 
 function trim_darwin() {
     cd .repo/manifests
@@ -24,7 +28,7 @@ function trim_darwin() {
     cd ../
 }
 
-export outdir="out/target/product/$device"
+export outdir="out/target/product/$DEVICE"
 ci_url="$(echo "https://cloud.drone.io/"$ci_repo"/"$(cat /tmp/build_no)"/1/2" | tr -d " ")"
 
 cd /home/ci
@@ -47,8 +51,8 @@ echo "Sync started for "$manifest_url""
 telegram -M "Sync Started for ["$ROM"]("$manifest_url")"
 SYNC_START=$(date +"%s")
 trim_darwin >/dev/null   2>&1
-repo sync --force-sync --current-branch --no-tags --no-clone-bundle --optimized-fetch --prune -j$(nproc --all) -q 2>&1 >>logwe 2>&1
 bash /drone/src/clone.sh
+repo sync --force-sync --current-branch --no-tags --no-clone-bundle --optimized-fetch --prune -j$(nproc --all) -q 2>&1 >>logwe 2>&1
 SYNC_END=$(date +"%s")
 SYNC_DIFF=$((SYNC_END - SYNC_START))
 if [ -e frameworks/base ]; then
@@ -59,14 +63,15 @@ if [ -e frameworks/base ]; then
 Build Started: [See Progress]("$ci_url")"
 
     BUILD_START=$(date +"%s")
-
-    . build/envsetup.sh >/dev/null  2>&1
+    
+    export CUSTOM_BUILD_TYPE=OFFICIAL
+    . build/envsetup.sh
     source /drone/src/config.sh
-    if [ -e device/"$oem"/"$device" ]; then
-        python3 /drone/src/dependency_cloner.py
-    fi
-    lunch "$rom_vendor_name"_"$device"-userdebug >/dev/null  2>&1
-    mka bacon | grep "$device"
+    #if [ -e device/"$OEM"/"$DEVICE" ]; then
+        #python3 /drone/src/dependency_cloner.py
+    #fi
+    lunch "$rom_vendor_name"_"$DEVICE"-userdebug
+    mka bacon | grep "$DEVICE"
     BUILD_END=$(date +"%s")
     BUILD_DIFF=$((BUILD_END - BUILD_START))
 
@@ -78,7 +83,7 @@ Build Started: [See Progress]("$ci_url")"
 
         echo "Uploading"
 
-        github-release "$release_repo" "$tag" "master" ""$ROM" for "$device"
+        github-release "$release_repo" "$tag" "master" ""$ROM" for "$DEVICE"
 
 Date: $(env TZ="$timezone" date)" "$finalzip_path"
 
@@ -87,14 +92,17 @@ Date: $(env TZ="$timezone" date)" "$finalzip_path"
         telegram -M "Build completed successfully in $((BUILD_DIFF / 60)) minute(s) and $((BUILD_DIFF % 60)) seconds
 
 Download: ["$zip_name"](https://github.com/"$release_repo"/releases/download/"$tag"/"$zip_name")"
+        make clean && make mrproper
 
     else
         echo "Build failed in $((BUILD_DIFF / 60)) minute(s) and $((BUILD_DIFF % 60)) seconds"
         telegram -N -M "Build failed in $((BUILD_DIFF / 60)) minute(s) and $((BUILD_DIFF % 60)) seconds"
+        make clean && make mrproper
         exit 1
     fi
 else
     echo "Sync failed in $((SYNC_DIFF / 60)) minute(s) and $((SYNC_DIFF % 60)) seconds"
     telegram -N -M "Sync failed in $((SYNC_DIFF / 60)) minute(s) and $((SYNC_DIFF % 60)) seconds"
+    make clean && make mrproper
     exit 1
 fi
