@@ -65,12 +65,14 @@ Build Started: [See Progress]("$ci_url")"
     BUILD_START=$(date +"%s")
     
     export CUSTOM_BUILD_TYPE=UNOFFICIAL
+    cd packages/resources/ && git clone https://github.com/LineageOS/android_packages_resources_devicesettings.git -b lineage-16.0 devicesettings
+    cd ../..
     . build/envsetup.sh
     source /drone/src/config.sh
     if [ -e device/"$OEM"/"$DEVICE" ]; then
         python3 /drone/src/dependency_cloner.py
     fi
-    brunch "$rom_vendor_name"_"$DEVICE"-userdebug
+    lunch "$rom_vendor_name"_"$DEVICE"-userdebug
     mka bacon | grep "$DEVICE"
     BUILD_END=$(date +"%s")
     BUILD_DIFF=$((BUILD_END - BUILD_START))
