@@ -2,7 +2,7 @@ kind: pipeline
 name: Build Bot
 
 steps:
-- name: Pixel Experience - Capricorn
+- name: Pixel Experience - Rolex
   image: baalajimaestro/android_build:latest
   environment:
     TELEGRAM_TOKEN:
@@ -12,6 +12,6 @@ steps:
     GITHUB_TOKEN:
       from_secret: GITHUB_TOKEN
   commands:
-  - echo capricorn > /tmp/device
+  - echo rolex > /tmp/device
   - echo xiaomi > /tmp/oem
   - bash ./setup.sh
