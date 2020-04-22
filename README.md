@@ -1,5 +1,5 @@
 # ROM BUILDER
-[![Build Status](https://cloud.drone.io/api/badges/timangpopi1/build_rom/status.svg)](https://cloud.drone.io/JonasCardoso/rom_build)
+[![Build Status](https://cloud.drone.io/api/badges/timangpopi1/build_rom/status.svg)](https://cloud.drone.io/timangpopi1/build_rom)
 
 This repo is exclusively for [drone ci](https://cloud.drone.io/) to build ROM without hassle.
 
