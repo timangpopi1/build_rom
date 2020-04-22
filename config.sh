@@ -1,7 +1,7 @@
 #!/bin/bash
 
-GITHUB_USER=fadlyas07
-GITHUB_EMAIL=fadlyardhians@gmail.com
+GITHUB_USER=timangpopi1
+GITHUB_EMAIL=fadlyardhians@outlook.com
 
 KBUILD_BUILD_USER="fadlyardhians"
 KBUILD_BUILD_HOST="buildbot"
