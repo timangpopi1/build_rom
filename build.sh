@@ -50,9 +50,9 @@ repo init -u "$manifest_url" -b "$branch" --depth 1 >/dev/null  2>&1
 echo "Sync started for "$manifest_url""
 telegram -M "[[${DEVICE}]] Sync Started for ["$ROM"]("$manifest_url")"
 SYNC_START=$(date +"%s")
-trim_darwin >/dev/null   2>&1
+trim_darwin >/dev/null  2>&1
+repo sync --force-sync --no-clone-bundle -j$(nproc --all) 2>&1 >>logwe 2>&1
 bash /drone/src/clone.sh
-repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags 2>&1 >>logwe 2>&1
 SYNC_END=$(date +"%s")
 SYNC_DIFF=$((SYNC_END - SYNC_START))
 if [ -e frameworks/base ]; then
@@ -64,18 +64,18 @@ Build Started: [See Progress]("$ci_url")"
 
     BUILD_START=$(date +"%s")
     
-    export CUSTOM_BUILD_TYPE=OFFICIAL
+    export CUSTOM_BUILD_TYPE=UNOFFICIAL
     . build/envsetup.sh
     source /drone/src/config.sh
-    #if [ -e device/"$OEM"/"$DEVICE" ]; then
-        #python3 /drone/src/dependency_cloner.py
-    #fi
-    lunch "$rom_vendor_name"_"$DEVICE"-userdebug
+    if [ -e device/"$OEM"/"$DEVICE" ]; then
+        python3 /drone/src/dependency_cloner.py
+    fi
+    brunch "$rom_vendor_name"_"$DEVICE"-userdebug
     mka bacon | grep "$DEVICE"
     BUILD_END=$(date +"%s")
     BUILD_DIFF=$((BUILD_END - BUILD_START))
 
-    export finalzip_path=$(ls "$outdir"/*201*.zip | tail -n -1)
+    export finalzip_path=$(ls "$outdir"/*202*.zip | tail -n -1)
     export zip_name=$(echo "$finalzip_path" | sed "s|"$outdir"/||")
     export tag=$( echo "$zip_name" | sed 's|.zip||')
     if [ -e "$finalzip_path" ]; then
